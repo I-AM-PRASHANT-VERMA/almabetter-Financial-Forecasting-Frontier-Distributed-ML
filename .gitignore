@@ -1,0 +1,19 @@
+# Local environment files should stay on the laptop.
+.venv-wsl/
+__pycache__/
+*.pyc
+
+# Generated reports and trained models can always be recreated.
+outputs/
+data/stream_chunks/input/
+data/stream_chunks/source_batches/
+
+# Keep private notes and personal guides out of GitHub.
+README.md
+notes/
+video_notes/
+docs/submission_notes/
+
+# Workspace-only source documents do not need to go to GitHub.
+*.docx
+/bank.csv
