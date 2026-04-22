@@ -1,0 +1,108 @@
+services:
+  namenode:
+    build:
+      context: docker/hadoop-namenode-python
+      dockerfile: Dockerfile
+    image: bank-hadoop-namenode-python:latest
+    container_name: bank-namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      - CLUSTER_NAME=banking-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+      - ../data/raw:/project_data
+      - ../hadoop/mapreduce:/workspace/mapreduce
+    networks:
+      - bank-net
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: bank-datanode
+    hostname: datanode
+    ports:
+      - "9864:9864"
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - SERVICE_PRECONDITION=namenode:9870
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    networks:
+      - bank-net
+
+  hive-metastore-db:
+    image: postgres:14
+    container_name: bank-hive-metastore-db
+    hostname: hive-metastore-db
+    environment:
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+      - POSTGRES_DB=metastore
+      - POSTGRES_INITDB_ARGS=--auth-host=md5 --auth-local=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - hive-metastore-db:/var/lib/postgresql/data
+    networks:
+      - bank-net
+
+  hive-metastore:
+    build:
+      context: docker/hive-custom
+      dockerfile: Dockerfile
+    image: bank-hive-custom:latest
+    container_name: bank-hive-metastore
+    hostname: hive-metastore
+    command: ["/usr/local/bin/start-metastore.sh"]
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-db:5432/metastore
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName=org.postgresql.Driver
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName=hive
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword=hive
+      - SERVICE_PRECONDITION=namenode:9870 hive-metastore-db:5432
+    depends_on:
+      - namenode
+      - datanode
+      - hive-metastore-db
+    volumes:
+      - ../hive/queries:/workspace/hive/queries
+    networks:
+      - bank-net
+
+  hive-server:
+    image: bank-hive-custom:latest
+    container_name: bank-hive-server
+    hostname: hive-server
+    command: ["/usr/local/bin/start-hiveserver2.sh"]
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    environment:
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-db:5432/metastore
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName=org.postgresql.Driver
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName=hive
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword=hive
+      - HIVE_SITE_CONF_hive_metastore_uris=thrift://hive-metastore:9083
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - SERVICE_PRECONDITION=hive-metastore:9083
+    depends_on:
+      - hive-metastore
+    volumes:
+      - ../hive/queries:/workspace/hive/queries
+    networks:
+      - bank-net
+
+volumes:
+  namenode-data:
+  datanode-data:
+  hive-metastore-db:
+
+networks:
+  bank-net:
+    driver: bridge
