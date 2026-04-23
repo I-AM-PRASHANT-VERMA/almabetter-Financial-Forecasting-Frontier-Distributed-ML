@@ -1,0 +1,28 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081A35"/>
+      <stop offset="0.55" stop-color="#0B3D5C"/>
+      <stop offset="1" stop-color="#0E7490"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#5EEAD4"/>
+      <stop offset="1" stop-color="#FBBF24"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="360" rx="26" fill="url(#bg)"/>
+  <circle cx="1100" cy="62" r="152" fill="#22D3EE" fill-opacity="0.09"/>
+  <circle cx="1190" cy="270" r="175" fill="#FBBF24" fill-opacity="0.08"/>
+  <g opacity="0.32" stroke="#A5F3FC" stroke-width="2">
+    <path d="M760 286L822 234L875 250L941 174L1010 209L1080 118L1172 149"/>
+    <path d="M760 306H1198" stroke-dasharray="8 10"/>
+    <path d="M812 306V232M874 306V249M938 306V174M1008 306V208M1078 306V118M1170 306V148"/>
+  </g>
+  <rect x="72" y="72" width="98" height="98" rx="22" fill="#0E7490" stroke="#5EEAD4" stroke-width="2"/>
+  <path d="M95 138L117 112L132 127L149 101" stroke="#FDE68A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M146 101H151V106" stroke="#FDE68A" stroke-width="7" stroke-linecap="round"/>
+  <text x="72" y="220" fill="#CFFAFE" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">DISTRIBUTED MACHINE LEARNING</text>
+  <text x="72" y="268" fill="white" font-family="Arial, sans-serif" font-size="42" font-weight="700">Financial Forecasting Frontier</text>
+  <text x="72" y="306" fill="#BAE6FD" font-family="Arial, sans-serif" font-size="21">Banking analytics with Hadoop, Hive, Spark ML and Structured Streaming</text>
+  <rect x="72" y="326" width="450" height="6" rx="3" fill="url(#line)"/>
+</svg>
