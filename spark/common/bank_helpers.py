@@ -1,3 +1,5 @@
+"""Shared Spark schemas, paths, transformations, and output helpers."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,6 +10,7 @@ from pyspark.sql.column import Column
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType, TimestampType
 
 
+# Central paths keep every Spark task aligned with the same input and output folders.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "bank.csv"
 OUTPUTS_PATH = PROJECT_ROOT / "outputs"
@@ -27,6 +30,7 @@ MONTH_ORDER = {
     "dec": 12,
 }
 
+# An explicit schema prevents Spark from inferring different types across runs.
 BANK_SCHEMA = StructType(
     [
         StructField("age", IntegerType(), True),
@@ -72,6 +76,7 @@ def ensure_dir(path: Path) -> Path:
 
 
 def load_bank_dataframe(spark: SparkSession, input_path: Path | str = RAW_DATA_PATH) -> DataFrame:
+    # Supplying the schema keeps numeric fields ready for aggregation and modelling.
     return (
         spark.read.option("header", True)
         .schema(BANK_SCHEMA)
@@ -131,12 +136,14 @@ def clip_numeric_outliers(df: DataFrame, columns: Iterable[str], lower_q: float 
 
 
 def save_dataframe(df: DataFrame, output_path: Path, mode: str = "overwrite") -> None:
+    # Reports are small enough to collect locally and save as a single readable CSV file.
     ensure_dir(output_path.parent)
     pandas_df = df.toPandas()
     pandas_df.to_csv(output_path, index=False)
 
 
 def extract_feature_names(metadata: dict) -> list[str]:
+    # Spark stores assembled feature positions inside schema metadata.
     attrs = metadata.get("ml_attr", {}).get("attrs", {})
     ordered_features: list[tuple[int, str]] = []
     for attr_group in attrs.values():

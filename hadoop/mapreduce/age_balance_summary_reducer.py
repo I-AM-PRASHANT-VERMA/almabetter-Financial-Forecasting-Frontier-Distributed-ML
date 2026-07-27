@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Calculate the average balance and client count for every age band."""
+
 import sys
 
 

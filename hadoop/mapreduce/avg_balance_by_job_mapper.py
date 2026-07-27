@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Emit job, balance, and count values for the job-level average."""
+
 import csv
 import sys
 

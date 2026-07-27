@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Group each valid client record into an age band for balance aggregation."""
+
 import csv
 import sys
 

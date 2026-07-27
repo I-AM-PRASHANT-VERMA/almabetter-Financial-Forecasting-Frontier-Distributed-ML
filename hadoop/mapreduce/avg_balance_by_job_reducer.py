@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Reduce sorted job records into average balances and client counts."""
+
 import sys
 
 

@@ -1,3 +1,5 @@
+"""Run Spark EDA and save the required banking summaries and charts."""
+
 from __future__ import annotations
 
 import json
@@ -32,6 +34,7 @@ from spark.common.bank_helpers import (
 def main() -> None:
     spark = build_spark_session("banking-spark-eda", shuffle_partitions=8)
 
+    # Reports and figures are separated so submission evidence is easy to locate.
     reports_dir = ensure_dir(OUTPUTS_PATH / "reports" / "spark_eda")
     figures_dir = ensure_dir(OUTPUTS_PATH / "figures" / "spark_eda")
 
@@ -44,12 +47,14 @@ def main() -> None:
     print("First five rows")
     df.show(5, truncate=False)
 
+    # Start with numeric statistics and a filtered sample before grouped analysis.
     numeric_summary = df.select("age", "balance", "duration", "campaign", "pdays", "previous").summary()
     save_dataframe(numeric_summary, reports_dir / "numeric_summary.csv")
 
     high_balance_df = df.filter(F.col("balance") > 1000)
     save_dataframe(high_balance_df.limit(200), reports_dir / "high_balance_sample.csv")
 
+    # Derived columns demonstrate reusable Spark transformations on the raw fields.
     df_with_quarter = (
         df.withColumn("quarter", quarter_expr("month"))
         .withColumn("age_group", age_group_expr("age"))
@@ -65,6 +70,7 @@ def main() -> None:
     df_with_udf = df_with_quarter.withColumn("age_group_udf", age_group_udf(F.col("age")))
     save_dataframe(df_with_udf.limit(200), reports_dir / "transformed_sample.csv")
 
+    # These grouped tables answer the main campaign and customer questions.
     job_agg = (
         df.groupBy("job")
         .agg(
@@ -125,6 +131,7 @@ def main() -> None:
     # Correlation gives a quick numerical check before jumping to charts and grouped summaries.
     correlation_value = df.stat.corr("age", "balance")
 
+    # A temporary view demonstrates the same analysis through Spark SQL.
     df_with_quarter.createOrReplaceTempView("bank_clients")
     spark_sql_avg_balance = spark.sql(
         """
@@ -158,6 +165,7 @@ def main() -> None:
     )
     save_dataframe(spark_sql_common_jobs, reports_dir / "spark_sql_top_jobs.csv")
 
+    # Only aggregated results are collected into pandas for plotting.
     job_counts_pd = df.groupBy("job").count().orderBy(F.desc("count")).toPandas()
     plt.figure(figsize=(12, 6))
     sns.barplot(data=job_counts_pd, x="job", y="count", hue="job", palette="viridis", legend=False)
@@ -175,6 +183,7 @@ def main() -> None:
     plt.savefig(figures_dir / "default_distribution.png", dpi=200)
     plt.close()
 
+    # Keep the headline findings in one small machine-readable summary.
     summary_payload = {
         "age_balance_correlation": correlation_value,
         "highest_contact_month": month_contact_summary.orderBy(F.desc("contact_count")).first().asDict(),

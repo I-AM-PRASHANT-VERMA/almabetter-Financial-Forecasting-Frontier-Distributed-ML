@@ -1,3 +1,5 @@
+"""Run live banking metrics, event-time windows, and subscription predictions."""
+
 from __future__ import annotations
 
 import time
@@ -25,6 +27,7 @@ from spark.common.bank_helpers import (
 
 
 def build_prediction_pipeline():
+    # The batch-trained feature pipeline can transform incoming rows with the same rules.
     indexers = [
         StringIndexer(inputCol=column_name, outputCol=f"{column_name}_idx", handleInvalid="keep")
         for column_name in CATEGORICAL_COLUMNS
@@ -58,6 +61,7 @@ def main(runtime_seconds: int = 45) -> None:
 
     pipeline_model = build_prediction_pipeline().fit(historical_df)
 
+    # Spark watches this directory and treats each new CSV file as a micro-batch.
     streaming_df = (
         spark.readStream.option("header", True)
         .schema(STREAMING_SCHEMA)
@@ -77,6 +81,7 @@ def main(runtime_seconds: int = 45) -> None:
         )
     )
 
+    # Watermarks allow late events while limiting how long window state is retained.
     window_10_seconds = (
         streaming_base.withWatermark("event_time", "2 minutes")
         .groupBy(F.window("event_time", "10 seconds"))
@@ -97,6 +102,7 @@ def main(runtime_seconds: int = 45) -> None:
         .select("window", "transaction_count", "avg_balance")
     )
 
+    # Expose the positive-class probability alongside the final binary prediction.
     prediction_output = predicted_stream.select(
         "event_time",
         "age",
@@ -116,6 +122,7 @@ def main(runtime_seconds: int = 45) -> None:
         prediction_output.writeStream.outputMode("append").format("console").option("truncate", False).option("numRows", 20).queryName("prediction_output").start(),
     ]
 
+    # Keep the demo bounded, then close every active query cleanly.
     time.sleep(runtime_seconds)
 
     for query in queries:

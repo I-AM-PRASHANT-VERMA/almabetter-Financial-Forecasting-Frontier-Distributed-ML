@@ -1,3 +1,5 @@
+"""Split historical banking data into timestamped files for a streaming demo."""
+
 from __future__ import annotations
 
 import math
@@ -24,6 +26,7 @@ def main(chunk_size: int = 150) -> None:
     for file_path in LIVE_INPUT.glob("*.csv"):
         file_path.unlink()
 
+    # Work on a copy so the original banking CSV remains unchanged.
     df = pd.read_csv(RAW_DATA_PATH).copy()
 
     # A few rows are nudged backwards in time so the watermark logic has something real to manage.
@@ -36,6 +39,7 @@ def main(chunk_size: int = 150) -> None:
         event_times.append(event_time)
     df["event_time"] = event_times
 
+    # The final batch may be smaller, so ceiling division keeps every row.
     total_batches = math.ceil(len(df) / chunk_size)
     for batch_number in range(total_batches):
         start = batch_number * chunk_size

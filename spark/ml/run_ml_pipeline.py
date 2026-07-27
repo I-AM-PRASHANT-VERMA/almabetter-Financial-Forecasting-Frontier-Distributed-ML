@@ -1,3 +1,5 @@
+"""Train, compare, tune, and save Spark ML classification pipelines."""
+
 from __future__ import annotations
 
 import json
@@ -29,6 +31,7 @@ from spark.common.bank_helpers import (
 
 
 def evaluate_predictions(predictions, label_col: str = "label") -> dict[str, float]:
+    # Using the same metrics for each model makes the comparison consistent.
     metrics = {
         "accuracy": MulticlassClassificationEvaluator(labelCol=label_col, predictionCol="prediction", metricName="accuracy").evaluate(predictions),
         "f1": MulticlassClassificationEvaluator(labelCol=label_col, predictionCol="prediction", metricName="f1").evaluate(predictions),
@@ -41,6 +44,7 @@ def evaluate_predictions(predictions, label_col: str = "label") -> dict[str, flo
 
 
 def build_feature_pipeline(model_type: str):
+    # Categorical values are indexed and encoded before all features are assembled.
     indexers = [
         StringIndexer(inputCol=column_name, outputCol=f"{column_name}_idx", handleInvalid="keep")
         for column_name in CATEGORICAL_COLUMNS
@@ -79,6 +83,7 @@ def main() -> None:
     cleaned_df = clip_numeric_outliers(base_df, NUMERIC_COLUMNS)
     prepared_df = cleaned_df.withColumn("label", F.when(F.col("y") == "yes", 1.0).otherwise(0.0))
 
+    # A fixed seed keeps the train-test comparison reproducible.
     train_df, test_df = prepared_df.randomSplit([0.8, 0.2], seed=42)
     train_df = train_df.cache()
     test_df = test_df.cache()
@@ -86,6 +91,7 @@ def main() -> None:
     logistic_pipeline = build_feature_pipeline("logistic")
     tree_pipeline = build_feature_pipeline("tree")
 
+    # Train simple baselines before spending time on cross-validation.
     logistic_model = logistic_pipeline.fit(train_df)
     tree_model = tree_pipeline.fit(train_df)
 
@@ -96,6 +102,7 @@ def main() -> None:
     logistic_metrics = evaluate_predictions(logistic_predictions)
     tree_metrics = evaluate_predictions(tree_predictions)
 
+    # Tune regularization because it controls how strongly logistic weights are constrained.
     tuning_pipeline = build_feature_pipeline("logistic")
     tuning_estimator = tuning_pipeline.getStages()[-1]
     param_grid = (
@@ -137,6 +144,7 @@ def main() -> None:
     prediction_sample = tuned_predictions.select("label", "prediction", "probability").limit(200)
     save_dataframe(prediction_sample, reports_dir / "prediction_sample.csv")
 
+    # Persist compact metrics and samples instead of storing the full prediction table.
     metrics_payload = {
         "baseline_logistic_regression": logistic_metrics,
         "baseline_decision_tree": tree_metrics,

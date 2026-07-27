@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Create education and housing-loan keys for grouped counting."""
+
 import csv
 import sys
 

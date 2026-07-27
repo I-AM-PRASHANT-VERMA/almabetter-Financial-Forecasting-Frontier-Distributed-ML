@@ -1,3 +1,5 @@
+"""Check the saved Spark evidence and the running Hadoop and Hive services."""
+
 from __future__ import annotations
 
 import json
@@ -25,6 +27,7 @@ def run_command(command: list[str]) -> tuple[bool, str]:
 
 
 def build_check(name: str, passed: bool, details: str) -> dict[str, str | bool]:
+    # A common result shape keeps the JSON report simple to inspect.
     return {
         "name": name,
         "passed": passed,
@@ -90,6 +93,7 @@ def main() -> int:
     checks.append(build_check("parallelism_report", parallel_summary.exists(), str(parallel_summary)))
     checks.append(build_check("spark_model_folder", model_path.exists(), str(model_path)))
 
+    # The project is healthy only when every required component passes.
     overall_pass = all(bool(item["passed"]) for item in checks)
     payload = {
         "overall_pass": overall_pass,

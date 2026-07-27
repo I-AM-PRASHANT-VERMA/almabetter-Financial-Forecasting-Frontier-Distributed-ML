@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Count housing-loan responses within each education category."""
+
 import sys
 
 

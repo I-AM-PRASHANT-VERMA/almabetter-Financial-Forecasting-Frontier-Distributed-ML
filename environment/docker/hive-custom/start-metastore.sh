@@ -10,9 +10,11 @@ function wait_for_host_port() {
   done
 }
 
+# Both storage services must be ready before the metastore initializes its schema.
 wait_for_host_port namenode 9870
 wait_for_host_port hive-metastore-db 5432
 
+# Build the metastore configuration from the values supplied by Docker Compose.
 cat > /opt/hive/conf/hive-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
@@ -58,5 +60,6 @@ export HADOOP_CLASSPATH="${HADOOP_CLASSPATH:-}:$HIVE_HOME/lib/*"
   -userName "${HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName}" \
   -passWord "${HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword}" || true
 
+# Keep the metastore in the foreground so Docker can track its health.
 exec /opt/hive/bin/hive --service metastore \
   --hiveconf hive.metastore.uris=thrift://0.0.0.0:9083

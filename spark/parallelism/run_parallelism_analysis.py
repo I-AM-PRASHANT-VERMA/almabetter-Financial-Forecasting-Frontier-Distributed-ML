@@ -1,3 +1,5 @@
+"""Demonstrate Spark partitioning, caching, resource tracking, and parallel ML."""
+
 from __future__ import annotations
 
 import json
@@ -30,6 +32,7 @@ from spark.common.bank_helpers import (
 
 
 def capture_resource_snapshot(label: str) -> dict[str, float]:
+    # Process memory and host CPU provide lightweight evidence for each workload stage.
     process = psutil.Process(os.getpid())
     return {
         "label": label,
@@ -40,6 +43,7 @@ def capture_resource_snapshot(label: str) -> dict[str, float]:
 
 
 def main() -> None:
+    # Cap the partition count so a local machine is used without creating tiny tasks.
     available_cores = os.cpu_count() or 4
     target_partitions = max(4, min(available_cores * 2, 16))
 
@@ -58,6 +62,7 @@ def main() -> None:
     partitioned_df.count()
     resource_log.append(capture_resource_snapshot("after_repartition"))
 
+    # The cached partitioned frame is reused for aggregation and model preparation.
     avg_balance_by_job = (
         partitioned_df.groupBy("job")
         .agg(F.avg("balance").alias("average_balance"))
@@ -84,6 +89,7 @@ def main() -> None:
     )
     train_df, test_df = prepared_df.randomSplit([0.8, 0.2], seed=42)
 
+    # The same distributed feature stages used in ML are fitted on the partitioned data.
     indexers = [
         StringIndexer(inputCol=column_name, outputCol=f"{column_name}_idx", handleInvalid="keep")
         for column_name in CATEGORICAL_COLUMNS
@@ -110,6 +116,7 @@ def main() -> None:
     save_dataframe(evaluation_df, reports_dir / "prediction_confusion_matrix_counts.csv")
     resource_log.append(capture_resource_snapshot("after_model_training"))
 
+    # Save the chosen partition strategy with the measured resource snapshots.
     task_notes = {
         "available_cores": available_cores,
         "target_partitions": target_partitions,

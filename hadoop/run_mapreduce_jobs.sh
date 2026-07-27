@@ -25,6 +25,7 @@ run_streaming_job() {
     -output /project/banking/output/${job_name}"
 }
 
+# Run every required banking summary against the same HDFS input file.
 run_streaming_job "avg_balance_by_job" "avg_balance_by_job_mapper.py" "avg_balance_by_job_reducer.py"
 run_streaming_job "housing_loan_by_education" "housing_loan_by_education_mapper.py" "housing_loan_by_education_reducer.py"
 run_streaming_job "contacts_by_month_subscription" "contacts_by_month_subscription_mapper.py" "contacts_by_month_subscription_reducer.py"

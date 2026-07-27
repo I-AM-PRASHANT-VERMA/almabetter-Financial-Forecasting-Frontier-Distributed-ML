@@ -1,6 +1,8 @@
+# Local Hadoop and Hive services used by the banking analytics workflow.
 name: 2-financial-forecasting-frontier-distributed-ml
 
 services:
+  # NameNode stores HDFS metadata and exposes the browser interface on port 9870.
   namenode:
     build:
       context: docker/hadoop-namenode-python
@@ -21,6 +23,7 @@ services:
     networks:
       - bank-net
 
+  # DataNode stores the actual HDFS blocks managed by the NameNode.
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: bank-datanode
@@ -37,6 +40,7 @@ services:
     networks:
       - bank-net
 
+  # PostgreSQL keeps Hive table definitions separate from the data in HDFS.
   hive-metastore-db:
     image: postgres:14
     container_name: bank-hive-metastore-db
@@ -53,6 +57,7 @@ services:
     networks:
       - bank-net
 
+  # The metastore service connects Hive metadata to PostgreSQL and HDFS.
   hive-metastore:
     build:
       context: docker/hive-custom
@@ -77,6 +82,7 @@ services:
     networks:
       - bank-net
 
+  # HiveServer2 accepts Beeline and JDBC queries on the banking tables.
   hive-server:
     image: bank-hive-custom:latest
     container_name: bank-hive-server
@@ -100,11 +106,13 @@ services:
     networks:
       - bank-net
 
+# Named volumes keep service state available between container restarts.
 volumes:
   namenode-data:
   datanode-data:
   hive-metastore-db:
 
+# A private bridge network lets the services resolve each other by hostname.
 networks:
   bank-net:
     driver: bridge

@@ -13,6 +13,7 @@ sudo apt-get install -y openjdk-17-jdk python3-venv python3-pip docker-compose-p
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
+# Install the pinned project packages inside the WSL-only environment.
 python -m pip install --upgrade pip
 python -m pip install -r "$REQUIREMENTS_FILE"
 

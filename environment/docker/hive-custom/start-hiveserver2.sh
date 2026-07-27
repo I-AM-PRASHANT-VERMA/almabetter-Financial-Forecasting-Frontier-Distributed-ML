@@ -10,8 +10,10 @@ function wait_for_host_port() {
   done
 }
 
+# HiveServer2 should start only after the shared metastore is accepting connections.
 wait_for_host_port hive-metastore 9083
 
+# Runtime values are written here so the container uses the Compose environment.
 cat > /opt/hive/conf/hive-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
@@ -38,6 +40,7 @@ cat > /opt/hive/conf/hive-site.xml <<EOF
 </configuration>
 EOF
 
+# Replace the shell with HiveServer2 so Docker receives the service exit status.
 exec /opt/hive/bin/hiveserver2 \
   --hiveconf hive.server2.enable.doAs=false \
   --hiveconf hive.metastore.uris=thrift://hive-metastore:9083

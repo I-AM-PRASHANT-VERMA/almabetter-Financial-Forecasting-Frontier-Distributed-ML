@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Count contacts for each month and subscription result pair."""
+
 import sys
 
 

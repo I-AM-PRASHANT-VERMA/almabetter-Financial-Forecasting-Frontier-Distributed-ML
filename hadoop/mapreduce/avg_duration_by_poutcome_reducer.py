@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Calculate average call duration for each previous campaign outcome."""
+
 import sys
 
 

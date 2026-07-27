@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Emit campaign outcome and duration values for downstream averaging."""
+
 import csv
 import sys
 

@@ -1,3 +1,5 @@
+"""Feed prepared CSV batches into the live Structured Streaming folder."""
+
 from __future__ import annotations
 
 import shutil
@@ -12,6 +14,7 @@ LIVE_INPUT = PROJECT_ROOT / "data" / "stream_chunks" / "input"
 
 def main(delay_seconds: int = 3) -> None:
     LIVE_INPUT.mkdir(parents=True, exist_ok=True)
+    # Filename sorting preserves the original customer-record order.
     batch_files = sorted(SOURCE_BATCHES.glob("batch_*.csv"))
 
     for batch_file in batch_files:

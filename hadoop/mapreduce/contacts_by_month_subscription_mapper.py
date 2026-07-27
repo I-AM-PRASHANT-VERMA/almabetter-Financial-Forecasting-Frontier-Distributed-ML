@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Create month and subscription keys for campaign contact counting."""
+
 import csv
 import sys
 
