@@ -8,11 +8,6 @@ outputs/
 data/stream_chunks/input/
 data/stream_chunks/source_batches/
 
-# Keep private notes and personal guides out of GitHub.
-notes/
-video_notes/
-docs/submission_notes/
-
 # Workspace-only source documents do not need to go to GitHub.
 *.docx
 /bank.csv
