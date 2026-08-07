@@ -69,6 +69,7 @@ flowchart LR
 
 ```text
 .
+├── almabetter-Financial-Forecasting-Frontier-Distributed-ML.ipynb  # Colab EDA and calibrated ML workflow
 ├── data/
 │   └── raw/bank.csv
 ├── environment/                 # Docker Compose and WSL setup files
